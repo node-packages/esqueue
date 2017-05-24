@@ -270,6 +270,7 @@ export default class Worker extends events.EventEmitter {
     } , this.checkInterval);
 
     this._poller.running = true;
+    this.emit(constants.EVENT_WORKER_JOB_POLLING_READY);
   }
 
   _stopJobPolling() {
@@ -349,7 +350,10 @@ export default class Worker extends events.EventEmitter {
     })
     .then((results) => {
       const jobs = results.hits.hits;
+
       this.debug(`${jobs.length} outstanding jobs returned`);
+      this.emit(constants.EVENT_WORKER_JOB_SEARCH_COMPLETE, jobs);
+
       return jobs;
     })
     .catch((err) => {

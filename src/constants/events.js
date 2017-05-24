@@ -5,6 +5,8 @@ export default {
   EVENT_JOB_CREATE_ERROR: 'job:creation error',
   EVENT_WORKER_COMPLETE: 'worker:job complete',
   EVENT_WORKER_JOB_CLAIM_ERROR: 'worker:claim job error',
+  EVENT_WORKER_JOB_POLLING_READY: 'worker:job poller ready',
+  EVENT_WORKER_JOB_SEARCH_COMPLETE: 'worker:pending jobs returned',
   EVENT_WORKER_JOB_SEARCH_ERROR: 'worker:pending jobs error',
   EVENT_WORKER_JOB_UPDATE_ERROR: 'worker:update job error',
   EVENT_WORKER_JOB_FAIL: 'worker:job failed',
