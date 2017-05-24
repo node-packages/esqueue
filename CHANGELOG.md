@@ -2,6 +2,12 @@
 
 Notable changes to the esqueue project. Pay attention to `[BREAKING]` changes when upgrading in pre-1.0 versions. As of 1.0, breaking changes will only happen in major versions.
 
+## v3.0.0
+
+- support for node v4 or earlier is no longer tested
+- update several dependencies
+- fix issue where job poller would not wait for ES response
+
 ## v2.0.2
 
 - Fix issue where creating a worker would not use the queue's doctype by default
