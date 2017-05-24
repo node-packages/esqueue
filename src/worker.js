@@ -256,7 +256,8 @@ export default class Worker extends events.EventEmitter {
     }
 
     this._poller.timer = setTimeout(() => {
-      this._getPendingJobs().then((jobs) => {
+      this._getPendingJobs()
+      .then((jobs) => {
         if (!this._poller.running) return;
 
         const foundJobs = (!jobs || jobs.length === 0);
@@ -266,6 +267,16 @@ export default class Worker extends events.EventEmitter {
           this._poller.running = false;
           this._startJobPolling();
         });
+      }, () => {
+        // if the search failed for some reason, back off the polling
+        // we assume errors came from a busy cluster
+        // TODO: check what error actually happened
+        const multiplier = 20;
+
+        setTimeout(() => {
+          this._poller.running = false;
+          this._startJobPolling();
+        }, this.checkInterval * multiplier);
       });
     } , this.checkInterval);
 
