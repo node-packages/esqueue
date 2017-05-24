@@ -187,24 +187,63 @@ describe('Worker class', function () {
     });
 
     it('should not poll once destroyed', function () {
+      // remove the search spy
+      mockQueue.client.search.restore();
+
+      // mock the search, return 0 new jobs
+      const zeroHits = { hits: { hits: [] } };
+      const searchStub = sinon.stub(mockQueue.client, 'search', () => Promise.resolve(zeroHits));
+
       const worker = new Worker(mockQueue, 'test', noop);
 
+      function waitForSearch() {
+        return new Promise((resolve) => {
+          worker.once(constants.EVENT_WORKER_JOB_SEARCH_COMPLETE, () => {
+            resolve()
+          });
+        });
+      }
+
+      function waitForPoller() {
+        return new Promise((resolve) => {
+          worker.once(constants.EVENT_WORKER_JOB_POLLING_READY, () => {
+            resolve()
+          });
+        });
+      }
+
       // move the clock a couple times, test for searches each time
-      sinon.assert.notCalled(searchSpy);
-      clock.tick(defaults.interval);
-      sinon.assert.calledOnce(searchSpy);
-      clock.tick(defaults.interval);
-      sinon.assert.calledTwice(searchSpy);
+      sinon.assert.notCalled(searchStub);
 
-      // destroy the worker, move the clock, make sure another search doesn't happen
-      worker.destroy();
+      const firstWait = waitForSearch();
       clock.tick(defaults.interval);
-      sinon.assert.calledTwice(searchSpy);
 
-      // manually call job poller, move the clock, make sure another search doesn't happen
-      worker._startJobPolling();
-      clock.tick(defaults.interval);
-      sinon.assert.calledTwice(searchSpy);
+      return firstWait
+      .then(() => {
+        sinon.assert.calledOnce(searchStub);
+        return waitForPoller();
+      })
+      .then(() => {
+        const secondWait = waitForSearch();
+        clock.tick(defaults.interval);
+        return secondWait;
+      })
+      .then(() => {
+        sinon.assert.calledTwice(searchStub);
+        return waitForPoller();
+      })
+      .then(() => {
+        // destroy the worker, move the clock, make sure another search doesn't happen
+        worker.destroy();
+
+        clock.tick(defaults.interval);
+        sinon.assert.calledTwice(searchStub);
+
+        // manually call job poller, move the clock, make sure another search doesn't happen
+        worker._startJobPolling();
+        clock.tick(defaults.interval);
+        sinon.assert.calledTwice(searchStub);
+      });
     });
   });
 
