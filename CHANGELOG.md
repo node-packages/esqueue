@@ -7,6 +7,7 @@ Notable changes to the esqueue project. Pay attention to `[BREAKING]` changes wh
 - support for node v4 or earlier is no longer tested
 - update several dependencies
 - fix issue where job poller would not wait for ES response
+- when job polling search fails, wait for a 20x interval before searching again
 
 ## v2.0.2
 
