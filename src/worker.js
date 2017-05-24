@@ -34,14 +34,17 @@ export default class Worker extends events.EventEmitter {
 
     this.debug = (...msg) => debug(...msg, `id: ${this.id}`);
 
-    this._checker = false;
-    this._running = true;
+    this._poller = {
+      timer: false,
+      enabled: true,
+    };
+
     this.debug(`Created worker for job type ${this.jobtype}`);
     this._startJobPolling();
   }
 
   destroy() {
-    this._running = false;
+    this._poller.enabled = false;
     this._stopJobPolling();
   }
 
@@ -247,18 +250,17 @@ export default class Worker extends events.EventEmitter {
   }
 
   _startJobPolling() {
-    if (!this._running) {
+    if (!this._poller.enabled) {
       return;
     }
 
-    this._checker = setInterval(() => {
-      this._getPendingJobs()
-      .then((jobs) => this._claimPendingJobs(jobs));
+    this._poller.timer = setInterval(() => {
+      this._getPendingJobs().then((jobs) => this._claimPendingJobs(jobs));
     } , this.checkInterval);
   }
 
   _stopJobPolling() {
-    clearInterval(this._checker);
+    clearInterval(this._poller.timer);
   }
 
   _claimPendingJobs(jobs) {
